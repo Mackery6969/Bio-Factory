@@ -1,0 +1,201 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Release type (also controls the GitHub prerelease flag)"
+        type: choice
+        options:
+          - release
+          - beta
+          - alpha
+        default: release
+      changelog:
+        description: "Changelog for this release (Markdown). Leave blank to pull the matching version's section from CHANGELOG.md automatically."
+        type: string
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  alexs-caves:
+    name: Alex's Caves
+    uses: ./.github/workflows/alexs-caves.yml
+
+  release:
+    name: Build and publish
+    needs: alexs-caves
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      ALEXS_CAVES_DIR_NAME: ${{ needs.alexs-caves.outputs.dir-name }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v6
+        with:
+          java-version: "21"
+          distribution: temurin
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Restore Alex's Caves build output
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ runner.temp }}/${{ env.ALEXS_CAVES_DIR_NAME }}/mcmodsrepo
+          key: ${{ needs.alexs-caves.outputs.cache-key }}
+          fail-on-cache-miss: true
+
+      - name: Build with Gradle
+        run: ./gradlew build "-Palexs_caves_repo=$RUNNER_TEMP/$ALEXS_CAVES_DIR_NAME/mcmodsrepo"
+
+      - name: Read mod version
+        id: meta
+        run: |
+          MOD_ID=$(grep -oP '^mod_id=\K.*' gradle.properties)
+          MOD_VERSION=$(grep -oP '^mod_version=\K.*' gradle.properties)
+          MINECRAFT_VERSION=$(grep -oP '^minecraft_version=\K.*' gradle.properties)
+          echo "mod_version=$MOD_VERSION" >> "$GITHUB_OUTPUT"
+          echo "minecraft_version=$MINECRAFT_VERSION" >> "$GITHUB_OUTPUT"
+          echo "name=${MOD_ID}-${MOD_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${MOD_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify updates.json is in sync
+        env:
+          MOD_VERSION: ${{ steps.meta.outputs.mod_version }}
+          MINECRAFT_VERSION: ${{ steps.meta.outputs.minecraft_version }}
+          RELEASE_TYPE: ${{ inputs.release_type }}
+        run: |
+          LATEST=$(jq -r --arg k "${MINECRAFT_VERSION}-latest" '.promos[$k] // ""' updates.json)
+          RECOMMENDED=$(jq -r --arg k "${MINECRAFT_VERSION}-recommended" '.promos[$k] // ""' updates.json)
+          NOTES=$(jq -r --arg mc "$MINECRAFT_VERSION" --arg v "$MOD_VERSION" '.[$mc][$v] // ""' updates.json)
+
+          if [ "$LATEST" != "$MOD_VERSION" ]; then
+            echo "::error::updates.json promos.${MINECRAFT_VERSION}-latest is '$LATEST', expected '$MOD_VERSION'"
+            exit 1
+          fi
+
+          if [ -z "$NOTES" ]; then
+            echo "::error::updates.json has no changelog entry for [\"$MINECRAFT_VERSION\"][\"$MOD_VERSION\"]"
+            exit 1
+          fi
+
+          if [ "$RELEASE_TYPE" = "release" ] && [ "$RECOMMENDED" != "$MOD_VERSION" ]; then
+            echo "::error::updates.json promos.${MINECRAFT_VERSION}-recommended is '$RECOMMENDED', expected '$MOD_VERSION' for a release build"
+            exit 1
+          fi
+
+      - name: Extract this version's changelog section
+        id: changelog
+        run: |
+          MOD_VERSION="${{ steps.meta.outputs.mod_version }}"
+          {
+            echo "text<<CHANGELOG_EOF"
+            if [ -f CHANGELOG.md ]; then
+              awk -v ver="$MOD_VERSION" '
+                /^## \[/ {
+                  if (found) exit
+                  if (index($0, "[" ver "]") > 0) { found=1; next }
+                  next
+                }
+                found && /^\[[^]]+\]:/ { next }
+                found { print }
+              ' CHANGELOG.md
+            fi
+            echo "CHANGELOG_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Validate optional publish credentials
+        run: |
+          if [ -n "$CURSEFORGE_PROJECT_ID" ] && [ -z "$CURSEFORGE_TOKEN" ]; then
+            echo "::error::CURSEFORGE_PROJECT_ID is set, but the CURSEFORGE_TOKEN repository secret is missing."
+            exit 1
+          fi
+
+          if [ -n "$MODRINTH_PROJECT_ID" ] && [ -z "$MODRINTH_TOKEN" ]; then
+            echo "::error::MODRINTH_PROJECT_ID is set, but the MODRINTH_TOKEN repository secret is missing."
+            exit 1
+          fi
+
+          if [ -n "$CURSEFORGE_PROJECT_ID" ]; then
+            case "$CURSEFORGE_PROJECT_ID" in
+              ''|*[!0-9]*)
+                echo "::error::CURSEFORGE_PROJECT_ID must be the numeric Project ID from the CurseForge project page, not the slug (got '$CURSEFORGE_PROJECT_ID'). A slug here makes the upload fail with an opaque HTTP 500."
+                exit 1
+                ;;
+            esac
+
+            CF_STATUS=$(curl -s -o /dev/null -w '%{http_code}' \
+              -H "X-Api-Token: $CURSEFORGE_TOKEN" \
+              https://minecraft.curseforge.com/api/game/versions)
+            if [ "$CF_STATUS" != "200" ]; then
+              echo "::error::CURSEFORGE_TOKEN was rejected by the CurseForge API (HTTP $CF_STATUS)."
+              exit 1
+            fi
+            echo "CurseForge token OK, project id $CURSEFORGE_PROJECT_ID is numeric."
+          fi
+        env:
+          CURSEFORGE_PROJECT_ID: ${{ vars.CURSEFORGE_PROJECT_ID }}
+          CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+          MODRINTH_PROJECT_ID: ${{ vars.MODRINTH_PROJECT_ID }}
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+
+      - name: Publish to GitHub Releases
+        uses: Kira-NT/mc-publish@v3
+        with:
+          name: ${{ steps.meta.outputs.name }}
+          version: ${{ steps.meta.outputs.mod_version }}
+          version-type: ${{ inputs.release_type }}
+
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-tag: ${{ steps.meta.outputs.tag }}
+          github-prerelease: ${{ inputs.release_type != 'release' }}
+
+          changelog: ${{ inputs.changelog != '' && inputs.changelog || steps.changelog.outputs.text }}
+
+      - name: Publish to CurseForge
+        if: ${{ !cancelled() && vars.CURSEFORGE_PROJECT_ID != '' }}
+        uses: Kira-NT/mc-publish@v3
+        with:
+          name: ${{ steps.meta.outputs.name }}
+          version: ${{ steps.meta.outputs.mod_version }}
+          version-type: ${{ inputs.release_type }}
+          changelog: ${{ inputs.changelog != '' && inputs.changelog || steps.changelog.outputs.text }}
+          loaders: ${{ vars.MOD_LOADERS != '' && vars.MOD_LOADERS || 'neoforge' }}
+          game-versions: ${{ vars.MINECRAFT_GAME_VERSIONS != '' && vars.MINECRAFT_GAME_VERSIONS || steps.meta.outputs.minecraft_version }}
+          java: ${{ vars.JAVA_VERSIONS != '' && vars.JAVA_VERSIONS || '21' }}
+
+          curseforge-id: ${{ vars.CURSEFORGE_PROJECT_ID }}
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+          curseforge-dependencies: ${{ vars.CURSEFORGE_DEPENDENCIES }}
+
+      - name: Publish to Modrinth
+        if: ${{ !cancelled() && vars.MODRINTH_PROJECT_ID != '' }}
+        uses: Kira-NT/mc-publish@v3
+        with:
+          name: ${{ steps.meta.outputs.name }}
+          version: ${{ steps.meta.outputs.mod_version }}
+          version-type: ${{ inputs.release_type }}
+          changelog: ${{ inputs.changelog != '' && inputs.changelog || steps.changelog.outputs.text }}
+          loaders: ${{ vars.MOD_LOADERS != '' && vars.MOD_LOADERS || 'neoforge' }}
+          game-versions: ${{ vars.MINECRAFT_GAME_VERSIONS != '' && vars.MINECRAFT_GAME_VERSIONS || steps.meta.outputs.minecraft_version }}
+          java: ${{ vars.JAVA_VERSIONS != '' && vars.JAVA_VERSIONS || '21' }}
+
+          modrinth-id: ${{ vars.MODRINTH_PROJECT_ID }}
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          modrinth-dependencies: ${{ vars.MODRINTH_DEPENDENCIES }}
