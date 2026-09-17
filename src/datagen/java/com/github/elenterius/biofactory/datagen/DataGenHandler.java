@@ -11,13 +11,13 @@ import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
-import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.common.data.LanguageProvider;
-import net.minecraftforge.data.event.GatherDataEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.common.data.LanguageProvider;
+import net.neoforged.neoforge.data.event.GatherDataEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
-@Mod.EventBusSubscriber(modid = BioFactoryMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = BioFactoryMod.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
 public class DataGenHandler {
 
 	private DataGenHandler() {}
@@ -38,10 +38,10 @@ public class DataGenHandler {
 		generator.addProvider(includeServer, new ModItemTagsProvider(packOutput, lookupProvider, blockTagsProvider.contentsGetter(), existingFileHelper));
 
 		//recipes
-		ModRecipeProviders.addProviders(includeServer, generator, packOutput);
+		ModRecipeProviders.addProviders(includeServer, generator, packOutput, lookupProvider);
 
 		//loot
-		generator.addProvider(includeServer, new ModLootTableProvider(packOutput));
+		generator.addProvider(includeServer, new ModLootTableProvider(packOutput, lookupProvider));
 
 		//models & block states
 		generator.addProvider(includeServer, new ModBlockStateProvider(packOutput, existingFileHelper));

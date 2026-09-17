@@ -5,9 +5,8 @@ import com.github.elenterius.biofactory.init.biomancy.ArmorUpgrades;
 import com.github.elenterius.biomancy.init.ModItems;
 import com.github.elenterius.biomancy.item.armor.AcolyteArmorUpgrades;
 import com.simibubi.create.AllItems;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -17,16 +16,16 @@ import net.minecraft.world.level.Level;
 
 public class AcolyteGogglesUpgradeRecipe extends CustomRecipe {
 
-	public AcolyteGogglesUpgradeRecipe(ResourceLocation id, CraftingBookCategory category) {
-		super(id, category);
+	public AcolyteGogglesUpgradeRecipe(CraftingBookCategory category) {
+		super(category);
 	}
 
 	@Override
-	public boolean matches(CraftingContainer inventory, Level level) {
+	public boolean matches(CraftingInput inventory, Level level) {
 		boolean hasHelmet = false;
 		boolean hasPrimordialCore = false;
 
-		for (int i = 0; i < inventory.getContainerSize(); i++) {
+		for (int i = 0; i < inventory.size(); i++) {
 			ItemStack stack = inventory.getItem(i);
 
 			if (stack.isEmpty()) {continue;}
@@ -48,11 +47,11 @@ public class AcolyteGogglesUpgradeRecipe extends CustomRecipe {
 	}
 
 	@Override
-	public ItemStack assemble(CraftingContainer inventory, RegistryAccess registryAccess) {
+	public ItemStack assemble(CraftingInput inventory, HolderLookup.Provider registries) {
 		ItemStack helmet = ItemStack.EMPTY;
 		boolean hasPrimordialCore = false;
 
-		for (int i = 0; i < inventory.getContainerSize(); i++) {
+		for (int i = 0; i < inventory.size(); i++) {
 			ItemStack stack = inventory.getItem(i);
 
 			if (stack.isEmpty()) {continue;}

@@ -4,6 +4,8 @@ import com.github.elenterius.biofactory.init.ModBlocks;
 import com.github.elenterius.biofactory.init.ModFluids;
 import com.github.elenterius.biofactory.init.ModItems;
 import com.github.elenterius.biofactory.init.ModRecipes;
+import com.github.elenterius.biofactory.init.create.FanProcessingTypes;
+import com.github.elenterius.biofactory.init.create.ItemAttributes;
 import com.github.elenterius.biomancy.api.livingtool.LivingTool;
 import com.github.elenterius.biomancy.util.ComponentUtil;
 import java.util.Set;
@@ -12,15 +14,13 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import software.bernie.geckolib.GeckoLib;
 
 @Mod(BioFactoryMod.MOD_ID)
 public final class BioFactoryMod {
@@ -28,12 +28,7 @@ public final class BioFactoryMod {
 	public static final String MOD_ID = "biofactory";
 	public static final Logger LOGGER = LogManager.getLogger("Bio-Factory");
 
-	public BioFactoryMod() {
-		GeckoLib.initialize();
-
-		IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-		ModLoadingContext modLoadingContext = ModLoadingContext.get();
-
+	public BioFactoryMod(IEventBus modEventBus, ModContainer modContainer) {
 		ModBlocks.BLOCKS.register(modEventBus);
 		ModItems.ITEMS.register(modEventBus);
 
@@ -42,11 +37,14 @@ public final class BioFactoryMod {
 
 		ModRecipes.RECIPE_SERIALIZERS.register(modEventBus);
 
+		FanProcessingTypes.FAN_PROCESSING_TYPES.register(modEventBus);
+		ItemAttributes.ITEM_ATTRIBUTE_TYPES.register(modEventBus);
+
 		CREATIVE_TABS.register(modEventBus);
 	}
 
 	public static ResourceLocation createRL(String path) {
-		return new ResourceLocation(MOD_ID, path);
+		return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
 	}
 
 	public static String createRLString(String path) {
@@ -54,11 +52,11 @@ public final class BioFactoryMod {
 	}
 
 	public static final DeferredRegister<CreativeModeTab> CREATIVE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, BioFactoryMod.MOD_ID);
-	public static final RegistryObject<CreativeModeTab> CREATIVE_TAB = CREATIVE_TABS.register("main", () -> CreativeModeTab.builder()
+	public static final DeferredHolder<CreativeModeTab, CreativeModeTab> CREATIVE_TAB = CREATIVE_TABS.register("main", () -> CreativeModeTab.builder()
 			.title(ComponentUtil.translatable("tab." + MOD_ID + ".main"))
 		.icon(() -> new ItemStack(ModItems.NUTRIENTS_BOTTLE.get()))
 			.displayItems((params, output) -> {
-				Set<RegistryObject<? extends Item>> hiddenItems = Set.of();
+				Set<DeferredHolder<Item, ? extends Item>> hiddenItems = Set.of();
 
 				ModItems.ITEMS.getEntries().stream()
 						.filter(entry -> !hiddenItems.contains(entry))

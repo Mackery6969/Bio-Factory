@@ -11,8 +11,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.common.data.BlockTagsProvider;
-import net.minecraftforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.common.data.BlockTagsProvider;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.Nullable;
 
 public class ModBlockTagsProvider extends BlockTagsProvider {
@@ -26,7 +26,7 @@ public class ModBlockTagsProvider extends BlockTagsProvider {
 	}
 
 	protected TagKey<Block> createTagKey(String modId, String path) {
-		return BlockTags.create(new ResourceLocation(modId, path));
+		return BlockTags.create(ResourceLocation.fromNamespaceAndPath(modId, path));
 	}
 
 	@Override

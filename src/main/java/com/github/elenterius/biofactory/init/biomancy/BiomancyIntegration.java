@@ -15,11 +15,11 @@ import com.github.elenterius.biomancy.api.tribute.fluid.FluidTribute;
 import com.github.elenterius.biomancy.api.tribute.fluid.FluidTributes;
 import com.simibubi.create.AllFluids;
 import com.simibubi.create.AllItems;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.PotionContents;
 
 public final class BiomancyIntegration {
 
@@ -29,10 +29,10 @@ public final class BiomancyIntegration {
 	public static final FluidToFuelConversion FLUID_TO_FUEL_CONVERSION = fluidStack -> FluidToFuelConversion.MILLI_FUEL_SCALE / 10;
 
 	public static final FluidToTributeConversion POTION_FLUID_TO_TRIBUTE_CONVERSION = resource -> {
-		CompoundTag tag = resource.getOrCreateTag();
+		PotionContents potionContents = resource.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY);
 
 		Builder builder = MobEffectTribute.builder();
-		PotionUtils.getAllEffects(tag).forEach(builder::addEffect);
+		potionContents.getAllEffects().forEach(builder::addEffect);
 		MobEffectTribute effectTribute = builder.build();
 
 		return FluidTribute.of(effectTribute, GLASS_BOTTLE_AMOUNT);

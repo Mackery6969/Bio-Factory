@@ -25,3 +25,9 @@ run
 forge*changelog.txt
 
 /src/generated/resources/.cache/
+
+# local maven publish target
+repo
+
+# run directories
+runs

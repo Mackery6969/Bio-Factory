@@ -1,35 +1,37 @@
 package com.github.elenterius.biofactory.datagen.recipes;
 
 import com.github.elenterius.biofactory.BioFactoryMod;
-import com.github.elenterius.biofactory.init.ModRecipes;
+import com.github.elenterius.biofactory.crafting.AcolyteGogglesUpgradeRecipe;
 import com.github.elenterius.biomancy.init.ModItems;
-import java.util.function.Consumer;
+import java.util.concurrent.CompletableFuture;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
-import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.Recipe;
+import java.util.function.Function;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.SpecialRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.crafting.CraftingRecipe;
-import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.ItemLike;
 
 public class VanillaRecipeProvider extends RecipeProvider {
 
-	protected VanillaRecipeProvider(PackOutput packOutput) {
-		super(packOutput);
+	protected VanillaRecipeProvider(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> registries) {
+		super(packOutput, registries);
 	}
 
 	protected ResourceLocation getSpecialCraftingRecipeId(ItemLike itemLike) {
 		return BioFactoryMod.createRL("special_crafting/" + getItemName(itemLike));
 	}
 
-	protected void special(Consumer<FinishedRecipe> consumer, ItemLike result, RecipeSerializer<? extends CraftingRecipe> serializer) {
-		SpecialRecipeBuilder.special(serializer).save(consumer, getSpecialCraftingRecipeId(result).toString());
+	protected void special(RecipeOutput recipeOutput, ItemLike result, Function<CraftingBookCategory, Recipe<?>> factory) {
+		SpecialRecipeBuilder.special(factory).save(recipeOutput, getSpecialCraftingRecipeId(result).toString());
 	}
 
 	@Override
-	protected void buildRecipes(Consumer<FinishedRecipe> consumer) {
-		special(consumer, ModItems.ACOLYTE_ARMOR_HELMET.get(), ModRecipes.ACOLYTE_GOGGLES_UPGRADE_SERIALIZER.get());
+	protected void buildRecipes(RecipeOutput recipeOutput) {
+		special(recipeOutput, ModItems.ACOLYTE_ARMOR_HELMET.get(), AcolyteGogglesUpgradeRecipe::new);
 	}
 
 }

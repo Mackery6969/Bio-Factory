@@ -25,18 +25,18 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  alexs-caves:
-    name: Alex's Caves
-    uses: ./.github/workflows/alexs-caves.yml
+  biomancy:
+    name: Biomancy
+    uses: ./.github/workflows/biomancy.yml
 
   release:
     name: Build and publish
-    needs: alexs-caves
+    needs: biomancy
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
     env:
-      ALEXS_CAVES_DIR_NAME: ${{ needs.alexs-caves.outputs.dir-name }}
+      BIOMANCY_DIR_NAME: ${{ needs.biomancy.outputs.dir-name }}
 
     steps:
       - name: Checkout repository
@@ -54,15 +54,15 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      - name: Restore Alex's Caves build output
+      - name: Restore Biomancy Maven repo
         uses: actions/cache/restore@v6
         with:
-          path: ${{ runner.temp }}/${{ env.ALEXS_CAVES_DIR_NAME }}/mcmodsrepo
-          key: ${{ needs.alexs-caves.outputs.cache-key }}
+          path: ${{ runner.temp }}/${{ env.BIOMANCY_DIR_NAME }}
+          key: ${{ needs.biomancy.outputs.cache-key }}
           fail-on-cache-miss: true
 
       - name: Build with Gradle
-        run: ./gradlew build "-Palexs_caves_repo=$RUNNER_TEMP/$ALEXS_CAVES_DIR_NAME/mcmodsrepo"
+        run: ./gradlew build "-Pbiomancy_repo=$RUNNER_TEMP/$BIOMANCY_DIR_NAME"
 
       - name: Read mod version
         id: meta
@@ -72,8 +72,8 @@ jobs:
           MINECRAFT_VERSION=$(grep -oP '^minecraft_version=\K.*' gradle.properties)
           echo "mod_version=$MOD_VERSION" >> "$GITHUB_OUTPUT"
           echo "minecraft_version=$MINECRAFT_VERSION" >> "$GITHUB_OUTPUT"
-          echo "name=${MOD_ID}-${MOD_VERSION}" >> "$GITHUB_OUTPUT"
-          echo "tag=v${MOD_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "name=${MOD_ID}-${MINECRAFT_VERSION}-v${MOD_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=${MINECRAFT_VERSION}-v${MOD_VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Verify updates.json is in sync
         env:

@@ -6,36 +6,37 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.minecraftforge.common.SoundActions;
-import net.minecraftforge.fluids.FluidType;
-import net.minecraftforge.fluids.ForgeFlowingFluid;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.common.SoundActions;
+import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.fluids.BaseFlowingFluid;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 public final class ModFluids {
 
-	public static final DeferredRegister<FluidType> FLUID_TYPES = DeferredRegister.create(ForgeRegistries.Keys.FLUID_TYPES, BioFactoryMod.MOD_ID);
-	public static final DeferredRegister<Fluid> FLUIDS = DeferredRegister.create(ForgeRegistries.FLUIDS, BioFactoryMod.MOD_ID);
+	public static final DeferredRegister<FluidType> FLUID_TYPES = DeferredRegister.create(NeoForgeRegistries.Keys.FLUID_TYPES, BioFactoryMod.MOD_ID);
+	public static final DeferredRegister<Fluid> FLUIDS = DeferredRegister.create(BuiltInRegistries.FLUID, BioFactoryMod.MOD_ID);
 
-	public static final RegistryObject<FluidType> NUTRIENTS_TYPE = registerType("nutrients_fluid", properties -> properties);
-	public static final Supplier<ForgeFlowingFluid.Properties> NUTRIENTS_FLUID_PROPERTIES = () -> new ForgeFlowingFluid.Properties(NUTRIENTS_TYPE, ModFluids.NUTRIENTS_FLUID,
+	public static final DeferredHolder<FluidType, FluidType> NUTRIENTS_TYPE = registerType("nutrients_fluid", properties -> properties);
+	public static final Supplier<BaseFlowingFluid.Properties> NUTRIENTS_FLUID_PROPERTIES = () -> new BaseFlowingFluid.Properties(NUTRIENTS_TYPE, ModFluids.NUTRIENTS_FLUID,
 		ModFluids.NUTRIENTS_FLUID);
-	public static final RegistryObject<ForgeFlowingFluid> NUTRIENTS_FLUID = register("nutrients_fluid", () -> new VirtualFluid(NUTRIENTS_FLUID_PROPERTIES.get(), true));
+	public static final DeferredHolder<Fluid, BaseFlowingFluid> NUTRIENTS_FLUID = register("nutrients_fluid", () -> new VirtualFluid(NUTRIENTS_FLUID_PROPERTIES.get(), true));
 
 	private ModFluids() {}
 
 	static void registerInteractions() {}
 
-	private static <T extends Fluid> RegistryObject<T> register(String name, Supplier<T> factory) {
+	private static <T extends Fluid> DeferredHolder<Fluid, T> register(String name, Supplier<T> factory) {
 		return FLUIDS.register(name, factory);
 	}
 
-	private static RegistryObject<FluidType> registerType(String name, UnaryOperator<FluidType.Properties> operator) {
+	private static DeferredHolder<FluidType, FluidType> registerType(String name, UnaryOperator<FluidType.Properties> operator) {
 		return FLUID_TYPES.register(name, () -> new FluidType(operator.apply(createFluidTypeProperties())) {
 
 			private final ResourceLocation stillTexture = BioFactoryMod.createRL("block/%s_still".formatted(name));

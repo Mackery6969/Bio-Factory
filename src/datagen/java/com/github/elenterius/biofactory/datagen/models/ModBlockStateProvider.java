@@ -6,10 +6,10 @@ import java.util.function.Supplier;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.client.model.generators.BlockStateProvider;
-import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 public class ModBlockStateProvider extends BlockStateProvider {
 
@@ -22,14 +22,14 @@ public class ModBlockStateProvider extends BlockStateProvider {
 	}
 
 	protected ResourceLocation registryKey(Block block) {
-		return Objects.requireNonNull(ForgeRegistries.BLOCKS.getKey(block));
+		return Objects.requireNonNull(BuiltInRegistries.BLOCK.getKey(block));
 	}
 
 	protected String path(Block block) {
 		return registryKey(block).getPath();
 	}
 
-	protected <T extends Block> void particleOnly(RegistryObject<T> block) {
+	protected <T extends Block> void particleOnly(DeferredHolder<Block, T> block) {
 		particleOnly(block.get());
 	}
 

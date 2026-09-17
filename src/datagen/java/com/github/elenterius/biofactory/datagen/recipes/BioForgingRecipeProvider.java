@@ -1,17 +1,18 @@
 package com.github.elenterius.biofactory.datagen.recipes;
 
 import com.github.elenterius.biomancy.api.nutrients.NutrientsContainerItem;
-import java.util.function.Consumer;
+import java.util.concurrent.CompletableFuture;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
-import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 public class BioForgingRecipeProvider extends RecipeProvider {
 
-	protected BioForgingRecipeProvider(PackOutput packOutput) {
-		super(packOutput);
+	protected BioForgingRecipeProvider(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> registries) {
+		super(packOutput, registries);
 	}
 
 	private static <T extends Item & NutrientsContainerItem> ItemStack withMaxNutrients(T item) {
@@ -21,7 +22,7 @@ public class BioForgingRecipeProvider extends RecipeProvider {
 	}
 
 	@Override
-	protected void buildRecipes(Consumer<FinishedRecipe> consumer) {
+	protected void buildRecipes(RecipeOutput recipeOutput) {
 		//		BioForgingRecipeBuilder.create(BioFactoryMod.MOD_ID, "acolyte_armor_helmet_upgrade", new ItemData(
 		//				AcolyteArmorUpgrades.addUpgrade(withMaxNutrients(ModItems.ACOLYTE_ARMOR_HELMET.get()), ArmorUpgrades.ACOLYTE_ENGINEERS_SIGHT_UPGRADE)
 		//			))

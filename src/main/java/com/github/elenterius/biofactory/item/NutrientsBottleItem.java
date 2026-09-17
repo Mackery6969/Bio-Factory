@@ -22,7 +22,7 @@ import net.minecraft.world.item.ItemUtils;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.util.Lazy;
+import net.neoforged.neoforge.common.util.Lazy;
 import org.jetbrains.annotations.Nullable;
 
 public class NutrientsBottleItem extends Item {
@@ -37,18 +37,13 @@ public class NutrientsBottleItem extends Item {
 
 	private static FoodProperties createFoodProperties() {
 		float pct = (float) FLUID_AMOUNT / BiomancyIntegration.convertToFluidAmount(ModItems.NUTRIENT_BAR.get().getDefaultInstance());
-		int nutrition = Mth.floor(pct * ModFoods.NUTRIENT_BAR.getNutrition());
-		float saturation = pct * ModFoods.NUTRIENT_BAR.getSaturationModifier();
-		return new FoodProperties.Builder().nutrition(nutrition).saturationMod(saturation).alwaysEat().build();
+		int nutrition = Mth.floor(pct * ModFoods.NUTRIENT_BAR.nutrition());
+		float saturation = pct * ModFoods.NUTRIENT_BAR.saturation();
+		return new FoodProperties.Builder().nutrition(nutrition).saturationModifier(saturation).alwaysEdible().build();
 	}
 
 	@Override
-	public boolean isEdible() {
-		return true;
-	}
-
-	@Override
-	public @Nullable FoodProperties getFoodProperties() {
+	public @Nullable FoodProperties getFoodProperties(ItemStack stack, @Nullable LivingEntity entity) {
 		return foodProperties.get();
 	}
 
@@ -87,7 +82,7 @@ public class NutrientsBottleItem extends Item {
 	}
 
 	@Override
-	public int getUseDuration(ItemStack stack) {
+	public int getUseDuration(ItemStack stack, LivingEntity entity) {
 		return 42;
 	}
 

@@ -1,0 +1,70 @@
+name: Biomancy
+
+on:
+  workflow_call:
+    outputs:
+      cache-key:
+        description: "Cache key holding the local Maven repo with the Biomancy artifact"
+        value: ${{ jobs.fetch.outputs.cache-key }}
+      dir-name:
+        description: "Directory under RUNNER_TEMP holding the local Maven repo"
+        value: ${{ jobs.fetch.outputs.dir-name }}
+
+permissions:
+  contents: read
+
+jobs:
+  fetch:
+    name: Fetch Biomancy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      BIOMANCY_REPO: Mackery6969/Biomancy
+      BIOMANCY_VERSION: 2.9.8.1
+      BIOMANCY_DIR_NAME: biomancy-repo
+
+    outputs:
+      cache-key: ${{ steps.meta.outputs.cache-key }}
+      dir-name: ${{ steps.meta.outputs.dir-name }}
+
+    steps:
+      - name: Compute cache metadata
+        id: meta
+        run: |
+          echo "cache-key=biomancy-maven-${RUNNER_OS}-${BIOMANCY_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "dir-name=${BIOMANCY_DIR_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Biomancy Maven repo
+        id: cache
+        uses: actions/cache@v6
+        with:
+          path: ${{ runner.temp }}/${{ env.BIOMANCY_DIR_NAME }}
+          key: ${{ steps.meta.outputs.cache-key }}
+
+      - name: Download Biomancy release jar into a local Maven repo
+        if: steps.cache.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          DEST="$RUNNER_TEMP/$BIOMANCY_DIR_NAME/com/github/elenterius/Biomancy/$BIOMANCY_VERSION"
+          mkdir -p "$DEST"
+
+          gh release download "v$BIOMANCY_VERSION" \
+            --repo "$BIOMANCY_REPO" \
+            --pattern "biomancy-neoforge-*-${BIOMANCY_VERSION}.jar" \
+            --output "$DEST/Biomancy-$BIOMANCY_VERSION.jar"
+
+          cat > "$DEST/Biomancy-$BIOMANCY_VERSION.pom" <<POM
+          <?xml version="1.0" encoding="UTF-8"?>
+          <project xmlns="http://maven.apache.org/POM/4.0.0">
+            <modelVersion>4.0.0</modelVersion>
+            <groupId>com.github.elenterius</groupId>
+            <artifactId>Biomancy</artifactId>
+            <version>$BIOMANCY_VERSION</version>
+            <packaging>jar</packaging>
+          </project>
+          POM
+          sed -i 's/^          //' "$DEST/Biomancy-$BIOMANCY_VERSION.pom"
+
+          ls -la "$DEST"

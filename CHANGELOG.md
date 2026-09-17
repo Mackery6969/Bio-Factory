@@ -1,3 +1,13 @@
+## [0.6.0] - NeoForge 1.21.1 (2026-09-16)
+
+Port of Bio-Factory 0.6.0 from Forge 1.20.1 to NeoForge 1.21.1.
+
+### Changes
+
+* target NeoForge 21.1.248 / Minecraft 1.21.1
+* update to Create 6.0.11 and its reworked addon datagen API
+* require Biomancy 2.9.8+
+
 ## [0.6.0](https://github.com/Elenterius/Bio-Factory/compare/1.20.1-v0.5.0...1.20.1-v0.6.0) (2025-03-11)
 
 

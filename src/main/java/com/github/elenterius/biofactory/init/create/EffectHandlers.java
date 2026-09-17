@@ -1,7 +1,7 @@
 package com.github.elenterius.biofactory.init.create;
 
 import com.github.elenterius.biofactory.init.ModFluids;
-import com.github.elenterius.biomancy.util.CombatUtil;
+import com.github.elenterius.biomancy.statuseffect.StatusEffectHandler;
 import com.simibubi.create.api.effect.OpenPipeEffectHandler;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.WeatheringCopper;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 public final class EffectHandlers {
 
@@ -31,9 +31,9 @@ public final class EffectHandlers {
 			if (level.getGameTime() % 5 != 0)
 				return;
 
-			List<LivingEntity> mobs = level.getEntitiesOfClass(LivingEntity.class, area, livingEntity -> !CombatUtil.hasAcidEffect(livingEntity));
+			List<LivingEntity> mobs = level.getEntitiesOfClass(LivingEntity.class, area, livingEntity -> !StatusEffectHandler.hasAcidEffect(livingEntity));
 			for (LivingEntity mob : mobs) {
-				CombatUtil.applyAcidEffect(mob, 4);
+				StatusEffectHandler.applyCorrosiveEffect(mob, 4);
 			}
 
 			BlockPos.betweenClosedStream(area).forEach(pos -> corrodeCopper(level, pos));

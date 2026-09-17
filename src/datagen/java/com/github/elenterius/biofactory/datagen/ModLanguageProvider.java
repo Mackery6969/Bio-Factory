@@ -8,9 +8,9 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraftforge.fluids.FluidType;
+import net.neoforged.neoforge.fluids.FluidType;
 
-public class ModLanguageProvider extends net.minecraftforge.common.data.LanguageProvider {
+public class ModLanguageProvider extends net.neoforged.neoforge.common.data.LanguageProvider {
 
 	public ModLanguageProvider(PackOutput output) {
 		super(output, BioFactoryMod.MOD_ID, "en_us");

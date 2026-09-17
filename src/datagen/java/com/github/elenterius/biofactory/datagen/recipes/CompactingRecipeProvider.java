@@ -1,20 +1,23 @@
 package com.github.elenterius.biofactory.datagen.recipes;
 
+import com.github.elenterius.biofactory.BioFactoryMod;
 import com.github.elenterius.biofactory.init.ModFluids;
 import com.github.elenterius.biofactory.init.biomancy.BiomancyIntegration;
 import com.github.elenterius.biomancy.init.ModItems;
-import com.simibubi.create.AllRecipeTypes;
+import com.simibubi.create.api.data.recipe.CompactingRecipeGen;
 import com.simibubi.create.content.processing.recipe.HeatCondition;
+import java.util.concurrent.CompletableFuture;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 
-public class CompactingRecipeProvider extends ProcessingRecipeProvider {
+public class CompactingRecipeProvider extends CompactingRecipeGen {
 
-	protected CompactingRecipeProvider(PackOutput generator) {
-		super(generator, AllRecipeTypes.COMPACTING);
+	protected CompactingRecipeProvider(PackOutput generator, CompletableFuture<HolderLookup.Provider> registries) {
+		super(generator, registries, BioFactoryMod.MOD_ID);
+		init();
 	}
 
-	@Override
-	protected void init() {
+	private void init() {
 		create("nutrient_bar_from_fluid", recipeBuilder -> {
 				int fluidAmount = BiomancyIntegration.convertToFluidAmount(ModItems.NUTRIENT_BAR.get().getDefaultInstance());
 				if (fluidAmount <= 0) {throw new IllegalArgumentException("Cannot create nutrients_fluid_gel_from_paste with amount of 0");}

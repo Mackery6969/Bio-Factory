@@ -7,13 +7,12 @@ import com.github.elenterius.biomancy.init.ModFluids;
 import com.github.elenterius.biomancy.init.ModMobEffects;
 import com.github.elenterius.biomancy.init.ModParticleTypes;
 import com.github.elenterius.biomancy.statuseffect.CorrosiveEffect;
-import com.simibubi.create.api.registry.CreateBuiltInRegistries;
+import com.simibubi.create.api.registry.CreateRegistries;
 import com.simibubi.create.content.kinetics.fan.processing.FanProcessingType;
 import net.createmod.catnip.theme.Color;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Registry;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.RandomSource;
@@ -27,19 +26,15 @@ import net.minecraft.world.level.block.WeatheringCopper;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
 import org.joml.Vector3f;
 
 public final class FanProcessingTypes {
 
-	public static final AcidSplashingType ACID_SPLASHING = register("acid_splashing", new AcidSplashingType());
+	public static final DeferredRegister<FanProcessingType> FAN_PROCESSING_TYPES = DeferredRegister.create(CreateRegistries.FAN_PROCESSING_TYPE, BioFactoryMod.MOD_ID);
 
-	static void register() {
-	}
-
-	private static <T extends FanProcessingType> T register(String name, T type) {
-		Registry.register(CreateBuiltInRegistries.FAN_PROCESSING_TYPE, BioFactoryMod.createRL(name), type);
-		return type;
-	}
+	public static final DeferredHolder<FanProcessingType, AcidSplashingType> ACID_SPLASHING = FAN_PROCESSING_TYPES.register("acid_splashing", AcidSplashingType::new);
 
 	public static class AcidSplashingType implements FanProcessingType {
 
@@ -123,7 +118,7 @@ public final class FanProcessingTypes {
 
 			if (entity instanceof LivingEntity livingEntity) {
 				CorrosiveEffect effect = ModMobEffects.CORROSIVE.get();
-				if (effect.isDurationEffectTick(livingEntity.tickCount, 0)) {
+				if (effect.shouldApplyEffectTickThisTick(livingEntity.tickCount, 0)) {
 					effect.applyEffectTick(livingEntity, 0);
 				}
 			}

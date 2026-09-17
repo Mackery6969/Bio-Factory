@@ -1,0 +1,16 @@
+{
+  "type": "create:compacting",
+  "heat_requirement": "heated",
+  "ingredients": [
+    {
+      "type": "neoforge:single",
+      "amount": 270,
+      "fluid": "biofactory:nutrients_fluid"
+    }
+  ],
+  "results": [
+    {
+      "id": "biomancy:nutrient_bar"
+    }
+  ]
+}

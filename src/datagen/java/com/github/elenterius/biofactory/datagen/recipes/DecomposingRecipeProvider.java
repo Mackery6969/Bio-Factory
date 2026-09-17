@@ -1,22 +1,24 @@
 package com.github.elenterius.biofactory.datagen.recipes;
 
 import java.util.Arrays;
-import java.util.function.Consumer;
 import net.minecraft.advancements.critereon.InventoryChangeTrigger;
 import net.minecraft.advancements.critereon.ItemPredicate;
+import java.util.concurrent.CompletableFuture;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.advancements.Criterion;
 import net.minecraft.data.PackOutput;
-import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 public class DecomposingRecipeProvider extends RecipeProvider {
 
-	protected DecomposingRecipeProvider(PackOutput packOutput) {
-		super(packOutput);
+	protected DecomposingRecipeProvider(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> registries) {
+		super(packOutput, registries);
 	}
 
 	protected static ItemPredicate createPredicate(ItemLike item) {
@@ -27,7 +29,7 @@ public class DecomposingRecipeProvider extends RecipeProvider {
 		return ItemPredicate.Builder.item().of(tag).build();
 	}
 
-	protected static InventoryChangeTrigger.TriggerInstance hasItems(ItemLike... itemProviders) {
+	protected static Criterion<InventoryChangeTrigger.TriggerInstance> hasItems(ItemLike... itemProviders) {
 		ItemPredicate[] predicates = Arrays.stream(itemProviders).map(DecomposingRecipeProvider::createPredicate).toArray(ItemPredicate[]::new);
 		return inventoryTrigger(predicates);
 	}
@@ -37,7 +39,7 @@ public class DecomposingRecipeProvider extends RecipeProvider {
 	}
 
 	protected static String getItemName(ItemLike itemLike) {
-		ResourceLocation key = ForgeRegistries.ITEMS.getKey(itemLike.asItem());
+		ResourceLocation key = BuiltInRegistries.ITEM.getKey(itemLike.asItem());
 		return key != null ? key.getPath() : "unknown";
 	}
 
@@ -46,7 +48,7 @@ public class DecomposingRecipeProvider extends RecipeProvider {
 	}
 
 	@Override
-	protected void buildRecipes(Consumer<FinishedRecipe> consumer) {
+	protected void buildRecipes(RecipeOutput recipeOutput) {
 		//		DecomposerRecipeBuilder.create().setIngredient(ModItems.LIVING_FLESH)
 		//			.addOutput(ModItems.FLESH_BITS.get(), 3, 6)
 		//			.addOutput(ModItems.EXOTIC_DUST.get(), 0, 2)

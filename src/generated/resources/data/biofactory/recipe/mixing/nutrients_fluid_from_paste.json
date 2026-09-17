@@ -1,0 +1,28 @@
+{
+  "type": "create:mixing",
+  "ingredients": [
+    {
+      "item": "biomancy:nutrient_paste"
+    },
+    {
+      "item": "biomancy:nutrient_paste"
+    },
+    {
+      "item": "biomancy:nutrient_paste"
+    },
+    {
+      "item": "biomancy:nutrient_paste"
+    },
+    {
+      "type": "neoforge:single",
+      "amount": 120,
+      "fluid": "minecraft:water"
+    }
+  ],
+  "results": [
+    {
+      "amount": 120,
+      "id": "biofactory:nutrients_fluid"
+    }
+  ]
+}

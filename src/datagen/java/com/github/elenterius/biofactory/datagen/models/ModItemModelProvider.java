@@ -8,11 +8,11 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.client.model.generators.CustomLoaderBuilder;
-import net.minecraftforge.client.model.generators.ItemModelBuilder;
-import net.minecraftforge.client.model.generators.ItemModelProvider;
-import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.client.model.generators.CustomLoaderBuilder;
+import net.neoforged.neoforge.client.model.generators.ItemModelBuilder;
+import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 public class ModItemModelProvider extends ItemModelProvider {
 
@@ -26,18 +26,18 @@ public class ModItemModelProvider extends ItemModelProvider {
 	}
 
 	private ResourceLocation registryKey(Item item) {
-		return Objects.requireNonNull(ForgeRegistries.ITEMS.getKey(item));
+		return Objects.requireNonNull(BuiltInRegistries.ITEM.getKey(item));
 	}
 
 	public ItemModelBuilder dynamicBucket(BucketItem item) {
 		ResourceLocation itemKey = registryKey(item);
-		ResourceLocation fluidKey = Objects.requireNonNull(ForgeRegistries.FLUIDS.getKey(item.getFluid()));
-		ResourceLocation loaderKey = new ResourceLocation("forge", "fluid_container");
-		ResourceLocation bucketModelKey = new ResourceLocation("forge", "item/bucket");
+		ResourceLocation fluidKey = Objects.requireNonNull(BuiltInRegistries.FLUID.getKey(item.content));
+		ResourceLocation loaderKey = ResourceLocation.fromNamespaceAndPath("neoforge", "fluid_container");
+		ResourceLocation bucketModelKey = ResourceLocation.fromNamespaceAndPath("neoforge", "item/bucket");
 
 		return getBuilder(itemKey.toString())
 			.parent(getExistingFile(bucketModelKey))
-			.customLoader((builder, existingFileHelper) -> new CustomLoaderBuilder<ItemModelBuilder>(loaderKey, builder, existingFileHelper) {
+			.customLoader((builder, existingFileHelper) -> new CustomLoaderBuilder<ItemModelBuilder>(loaderKey, builder, existingFileHelper, false) {
 				@Override
 				public JsonObject toJson(JsonObject json) {
 					json = super.toJson(json);

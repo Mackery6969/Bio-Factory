@@ -1,5 +1,7 @@
 package com.github.elenterius.biofactory.datagen.loot;
 
+import java.util.concurrent.CompletableFuture;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
@@ -12,11 +14,11 @@ public class ModLootTableProvider extends LootTableProvider {
 
 	public static final Marker LOG_MARKER = MarkerManager.getMarker("LootTableProvider");
 
-	public ModLootTableProvider(PackOutput packOutput) {
-		super(packOutput, Set.of(), createSubProviders(packOutput));
+	public ModLootTableProvider(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> registries) {
+		super(packOutput, Set.of(), createSubProviders(), registries);
 	}
 
-	private static List<SubProviderEntry> createSubProviders(PackOutput output) {
+	private static List<SubProviderEntry> createSubProviders() {
 		return List.of(
 			new SubProviderEntry(ModBlockLootSubProvider::new, LootContextParamSets.BLOCK)
 		);

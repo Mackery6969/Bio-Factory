@@ -8,8 +8,6 @@ public final class CreateIntegration {
 	public static void onPostSetup() {
 		InteractionBehaviors.register();
 		EffectHandlers.register();
-		FanProcessingTypes.register();
-		ItemAttributes.register();
 	}
 
 }
