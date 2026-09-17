@@ -21,7 +21,6 @@ jobs:
 
     env:
       BIOMANCY_REPO: Mackery6969/Biomancy
-      BIOMANCY_VERSION: 2.9.8.1
       BIOMANCY_DIR_NAME: biomancy-repo
 
     outputs:
@@ -29,11 +28,24 @@ jobs:
       dir-name: ${{ steps.meta.outputs.dir-name }}
 
     steps:
-      - name: Compute cache metadata
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          sparse-checkout: gradle.properties
+          sparse-checkout-cone-mode: false
+
+      - name: Resolve required Biomancy version
         id: meta
         run: |
+          BIOMANCY_VERSION=$(grep -oP '^biomancy_version=\K.*' gradle.properties)
+          if [ -z "$BIOMANCY_VERSION" ]; then
+            echo "::error::biomancy_version is not set in gradle.properties"
+            exit 1
+          fi
+          echo "version=$BIOMANCY_VERSION" >> "$GITHUB_OUTPUT"
           echo "cache-key=biomancy-maven-${RUNNER_OS}-${BIOMANCY_VERSION}" >> "$GITHUB_OUTPUT"
           echo "dir-name=${BIOMANCY_DIR_NAME}" >> "$GITHUB_OUTPUT"
+          echo "Bio-Factory requires Biomancy $BIOMANCY_VERSION"
 
       - name: Cache Biomancy Maven repo
         id: cache
@@ -42,10 +54,22 @@ jobs:
           path: ${{ runner.temp }}/${{ env.BIOMANCY_DIR_NAME }}
           key: ${{ steps.meta.outputs.cache-key }}
 
+      - name: Verify the required Biomancy release exists
+        if: steps.cache.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BIOMANCY_VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          if ! gh release view "v$BIOMANCY_VERSION" --repo "$BIOMANCY_REPO" >/dev/null 2>&1; then
+            echo "::error::$BIOMANCY_REPO has no release tagged v$BIOMANCY_VERSION, which biomancy_version in gradle.properties requires. Publish that Biomancy release first, then bump biomancy_version here."
+            exit 1
+          fi
+
       - name: Download Biomancy release jar into a local Maven repo
         if: steps.cache.outputs.cache-hit != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          BIOMANCY_VERSION: ${{ steps.meta.outputs.version }}
         run: |
           DEST="$RUNNER_TEMP/$BIOMANCY_DIR_NAME/com/github/elenterius/Biomancy/$BIOMANCY_VERSION"
           mkdir -p "$DEST"
@@ -55,16 +79,15 @@ jobs:
             --pattern "biomancy-neoforge-*-${BIOMANCY_VERSION}.jar" \
             --output "$DEST/Biomancy-$BIOMANCY_VERSION.jar"
 
-          cat > "$DEST/Biomancy-$BIOMANCY_VERSION.pom" <<POM
-          <?xml version="1.0" encoding="UTF-8"?>
-          <project xmlns="http://maven.apache.org/POM/4.0.0">
-            <modelVersion>4.0.0</modelVersion>
-            <groupId>com.github.elenterius</groupId>
-            <artifactId>Biomancy</artifactId>
-            <version>$BIOMANCY_VERSION</version>
-            <packaging>jar</packaging>
-          </project>
-          POM
-          sed -i 's/^          //' "$DEST/Biomancy-$BIOMANCY_VERSION.pom"
+          {
+            echo '<?xml version="1.0" encoding="UTF-8"?>'
+            echo '<project xmlns="http://maven.apache.org/POM/4.0.0">'
+            echo '  <modelVersion>4.0.0</modelVersion>'
+            echo '  <groupId>com.github.elenterius</groupId>'
+            echo '  <artifactId>Biomancy</artifactId>'
+            echo "  <version>$BIOMANCY_VERSION</version>"
+            echo '  <packaging>jar</packaging>'
+            echo '</project>'
+          } > "$DEST/Biomancy-$BIOMANCY_VERSION.pom"
 
           ls -la "$DEST"

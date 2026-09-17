@@ -1,0 +1,97 @@
+name: Canary
+
+on:
+  schedule:
+    - cron: "0 7 * * 1"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: canary-${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  alexs-caves:
+    name: Alex's Caves
+    uses: Mackery6969/Biomancy/.github/workflows/alexs-caves.yml@mc1.21.1/neoforge
+
+  canary:
+    name: Build against Biomancy HEAD
+    needs: alexs-caves
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    env:
+      ALEXS_CAVES_DIR_NAME: ${{ needs.alexs-caves.outputs.dir-name }}
+
+    steps:
+      - name: Checkout Bio-Factory
+        uses: actions/checkout@v7
+
+      - name: Checkout Biomancy
+        uses: actions/checkout@v7
+        with:
+          repository: Mackery6969/Biomancy
+          path: biomancy
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v6
+        with:
+          java-version: "21"
+          distribution: temurin
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Restore Alex's Caves build output
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ runner.temp }}/${{ env.ALEXS_CAVES_DIR_NAME }}/mcmodsrepo
+          key: ${{ needs.alexs-caves.outputs.cache-key }}
+          fail-on-cache-miss: true
+
+      - name: Publish Biomancy HEAD to a local Maven repo
+        id: biomancy
+        working-directory: biomancy
+        run: |
+          ./gradlew publish -x test "-Palexs_caves_repo=$RUNNER_TEMP/$ALEXS_CAVES_DIR_NAME/mcmodsrepo"
+
+          HEAD_VERSION=$(grep -oP '^mod_version=\K.*' gradle.properties)
+          echo "version=$HEAD_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Biomancy branch HEAD publishes as $HEAD_VERSION"
+
+      - name: Build Bio-Factory against Biomancy HEAD
+        env:
+          HEAD_VERSION: ${{ steps.biomancy.outputs.version }}
+          PINNED_VERSION_FILE: gradle.properties
+        run: |
+          PINNED=$(grep -oP '^biomancy_version=\K.*' "$PINNED_VERSION_FILE")
+          echo "Bio-Factory pins Biomancy $PINNED; Biomancy HEAD is $HEAD_VERSION"
+
+          ./gradlew build -x test \
+            "-Pbiomancy_repo=$GITHUB_WORKSPACE/biomancy/repo" \
+            "-Pbiomancy_version=$HEAD_VERSION"
+
+      - name: Summarise
+        if: always()
+        env:
+          HEAD_VERSION: ${{ steps.biomancy.outputs.version }}
+        run: |
+          PINNED=$(grep -oP '^biomancy_version=\K.*' gradle.properties)
+          {
+            echo "### Canary: Bio-Factory vs Biomancy HEAD"
+            echo ""
+            echo "| | version |"
+            echo "|---|---|"
+            echo "| Bio-Factory pins | \`$PINNED\` |"
+            echo "| Biomancy HEAD | \`${HEAD_VERSION:-unknown}\` |"
+            echo ""
+            if [ "${{ job.status }}" = "success" ]; then
+              echo "Bio-Factory still compiles against Biomancy's branch HEAD."
+            else
+              echo "Bio-Factory no longer builds against Biomancy's branch HEAD - the Biomancy API likely drifted."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
