@@ -84,6 +84,15 @@ configurations {
 dependencies {
 	implementation("com.simibubi.create:create-${minecraft_version}:${create_version}") {
 		exclude group: 'net.neoforged', module: 'neoforge'
+		// Create 6.0.10's published POM leaks its optional-mod compat deps as runtime
+		// deps (6.0.11+ dropped them). We don't have repos for these and don't need them.
+		exclude group: 'maven.modrinth'
+		exclude group: 'dev.ftb.mods'
+		exclude group: 'info.journeymap'
+		exclude group: 'dev.engine-room.vanillin'
+		exclude group: 'top.theillusivec4.curios'
+		exclude group: 'cc.tweaked'
+		exclude group: 'dev.architectury'
 	}
 	implementation("net.createmod.ponder:ponder-neoforge:${ponder_version}")
 	compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${minecraft_version}:${flywheel_version}")
