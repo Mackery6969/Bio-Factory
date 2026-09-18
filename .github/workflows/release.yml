@@ -25,18 +25,10 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  biomancy:
-    name: Biomancy
-    uses: ./.github/workflows/biomancy.yml
-
   release:
     name: Build and publish
-    needs: biomancy
     runs-on: ubuntu-latest
     timeout-minutes: 20
-
-    env:
-      BIOMANCY_DIR_NAME: ${{ needs.biomancy.outputs.dir-name }}
 
     steps:
       - name: Checkout repository
@@ -54,15 +46,8 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      - name: Restore Biomancy Maven repo
-        uses: actions/cache/restore@v6
-        with:
-          path: ${{ runner.temp }}/${{ env.BIOMANCY_DIR_NAME }}
-          key: ${{ needs.biomancy.outputs.cache-key }}
-          fail-on-cache-miss: true
-
       - name: Build with Gradle
-        run: ./gradlew build "-Pbiomancy_repo=$RUNNER_TEMP/$BIOMANCY_DIR_NAME"
+        run: ./gradlew build
 
       - name: Read mod version
         id: meta

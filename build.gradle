@@ -94,6 +94,7 @@ dependencies {
 		exclude group: 'cc.tweaked'
 		exclude group: 'dev.architectury'
 	}
+	implementation("com.tterrag.registrate:Registrate:${registrate_version}")
 	implementation("net.createmod.ponder:ponder-neoforge:${ponder_version}")
 	compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${minecraft_version}:${flywheel_version}")
 

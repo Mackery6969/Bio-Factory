@@ -22,16 +22,18 @@ plugins {
 	id 'net.neoforged.moddev.repositories'
 }
 
-def biomancyRepoPath = providers.gradleProperty("biomancy_repo")
-		.getOrElse("${rootDir}/../BiomancyPort/repo")
-def biomancyRepoUrl = biomancyRepoPath.startsWith("file:") ? biomancyRepoPath : new File(biomancyRepoPath).toURI().toString()
+def biomancyDefaultUrl = "https://raw.githubusercontent.com/Mackery6969/Biomancy/maven/"
+def biomancyRepoOverride = providers.gradleProperty("biomancy_repo").orNull
+def biomancyRepoUrl = biomancyRepoOverride == null ? biomancyDefaultUrl
+		: (biomancyRepoOverride.contains("://") ? biomancyRepoOverride
+		: new File(biomancyRepoOverride).toURI().toString())
 
 dependencyResolutionManagement {
 	repositoriesMode = RepositoriesMode.PREFER_SETTINGS
 
 	repositories {
 		maven {
-			name = "Biomancy (local publish)"
+			name = "Biomancy"
 			url = uri(biomancyRepoUrl)
 			content {
 				includeGroup("com.github.elenterius")

@@ -15,18 +15,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  biomancy:
-    name: Biomancy
-    uses: ./.github/workflows/biomancy.yml
-
   build:
     name: Build with Java 21
-    needs: biomancy
     runs-on: ubuntu-latest
     timeout-minutes: 20
-
-    env:
-      BIOMANCY_DIR_NAME: ${{ needs.biomancy.outputs.dir-name }}
 
     steps:
       - name: Checkout repository
@@ -44,15 +36,8 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      - name: Restore Biomancy Maven repo
-        uses: actions/cache/restore@v6
-        with:
-          path: ${{ runner.temp }}/${{ env.BIOMANCY_DIR_NAME }}
-          key: ${{ needs.biomancy.outputs.cache-key }}
-          fail-on-cache-miss: true
-
       - name: Build with Gradle
-        run: ./gradlew build "-Pbiomancy_repo=$RUNNER_TEMP/$BIOMANCY_DIR_NAME"
+        run: ./gradlew build
 
       - name: Compute artifact name
         id: artifact
@@ -74,16 +59,12 @@ jobs:
 
   submit:
     name: Submit Gradle Dependencies
-    needs: biomancy
     if: github.ref_name == github.event.repository.default_branch
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
     permissions:
       contents: write
-
-    env:
-      BIOMANCY_DIR_NAME: ${{ needs.biomancy.outputs.dir-name }}
 
     steps:
       - name: Checkout repository
@@ -95,14 +76,5 @@ jobs:
           java-version: "21"
           distribution: temurin
 
-      - name: Restore Biomancy Maven repo
-        uses: actions/cache/restore@v6
-        with:
-          path: ${{ runner.temp }}/${{ env.BIOMANCY_DIR_NAME }}
-          key: ${{ needs.biomancy.outputs.cache-key }}
-          fail-on-cache-miss: true
-
       - name: Submit dependency graph
         uses: gradle/actions/dependency-submission@v6
-        with:
-          additional-arguments: -Pbiomancy_repo=${{ runner.temp }}/${{ env.BIOMANCY_DIR_NAME }}
