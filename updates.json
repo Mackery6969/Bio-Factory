@@ -1,10 +1,11 @@
 {
   "homepage": "https://www.curseforge.com/minecraft/mc-mods/biofactory-port",
   "1.21.1": {
-    "0.6.0": "Port to NeoForge 1.21.1 and Create 6.0.11."
+    "0.6.1": "Fix create mod version range in gradle.properties.",
+    "0.6.0": "Port to NeoForge 1.21.1 and Create 6.0.10."
   },
   "promos": {
-    "1.21.1-latest": "0.6.0",
-    "1.21.1-recommended": "0.6.0"
+    "1.21.1-latest": "0.6.1",
+    "1.21.1-recommended": "0.6.1"
   }
 }
