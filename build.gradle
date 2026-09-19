@@ -79,6 +79,8 @@ neoForge {
 
 configurations {
 	datagenImplementation.extendsFrom implementation
+	devRuntimeOnly
+	runtimeClasspath.extendsFrom devRuntimeOnly
 }
 
 dependencies {
@@ -103,6 +105,13 @@ dependencies {
 	implementation("com.github.elenterius:Biomancy:${biomancy_version}") {
 		transitive = false
 	}
+
+	// Recipe viewer for dev runs only. It has to land on runtimeClasspath, not
+	// additionalRuntimeClasspath: the latter is the library path, which FML never
+	// scans for mods, so EMI would load as a plain jar and never register itself.
+	// devRuntimeOnly is not one of the java component's published variants, so this
+	// stays out of the POM published to maven.mackery.com.
+	devRuntimeOnly("dev.emi:emi-neoforge:${emi_version}")
 
 	datagenImplementation sourceSets.main.output
 }

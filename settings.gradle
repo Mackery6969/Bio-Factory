@@ -57,6 +57,13 @@ dependencyResolutionManagement {
 			}
 		}
 		maven {
+			name = "TerraformersMC (EMI)"
+			url = uri("https://maven.terraformersmc.com/releases")
+			content {
+				includeGroup("dev.emi")
+			}
+		}
+		maven {
 			name = "CreateMod"
 			url = uri("https://maven.createmod.net")
 			content {
