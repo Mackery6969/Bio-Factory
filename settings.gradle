@@ -22,7 +22,10 @@ plugins {
 	id 'net.neoforged.moddev.repositories'
 }
 
-def biomancyDefaultUrl = "https://raw.githubusercontent.com/Mackery6969/Biomancy/maven/"
+// Biomancy is published to maven.mackery.com by its release workflow. Override with
+// -Pbiomancy_repo=<dir|url> to build against a local publish instead (see canary.yml,
+// which builds Biomancy from source).
+def biomancyDefaultUrl = "https://maven.mackery.com"
 def biomancyRepoOverride = providers.gradleProperty("biomancy_repo").orNull
 def biomancyRepoUrl = biomancyRepoOverride == null ? biomancyDefaultUrl
 		: (biomancyRepoOverride.contains("://") ? biomancyRepoOverride
