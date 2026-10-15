@@ -1,5 +1,10 @@
-## [0.6.1] - NeoForge 1.21.1 (2026-09-18)
+## [0.6.2] - NeoForge 1.21.1 (2026-10-15)
 
+### Fixes
+
+* Fixed a Neoforge security vulnerability where hackers could trigger denial-of-service attacks in a minecraft server.
+
+## [0.6.1] - NeoForge 1.21.1 (2026-09-18)
 
 ### Fixes
 
