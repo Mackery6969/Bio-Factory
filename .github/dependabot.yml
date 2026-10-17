@@ -57,6 +57,7 @@ updates:
       - dependency-name: "org.apache.logging.log4j:*"
       - dependency-name: "org.codehaus.plexus:*"
       - dependency-name: "org.jcraft:*"
+      - dependency-name: "org.jline:*"
       - dependency-name: "org.joml:*"
       - dependency-name: "org.lwjgl:*"
       - dependency-name: "org.lz4:*"
