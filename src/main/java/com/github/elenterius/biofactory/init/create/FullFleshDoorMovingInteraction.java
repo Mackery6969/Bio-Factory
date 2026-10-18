@@ -37,6 +37,7 @@ class FullFleshDoorMovingInteraction extends SimpleBlockMovingInteraction {
 	private void updateDoorPart(Contraption contraption, BlockPos pos, BlockState state, FullFleshDoorBlock doorBlock) {
 		BlockPos offsetPos = doorBlock.isLowerHalf(state) ? pos.above() : pos.below();
 		StructureTemplate.StructureBlockInfo info = contraption.getBlocks().get(offsetPos);
+		if (info == null || !info.state().hasProperty(FullFleshDoorBlock.OPEN)) return;
 		BlockState newState = info.state().setValue(FullFleshDoorBlock.OPEN, doorBlock.isOpen(state));
 		setContraptionBlockData(contraption.entity, offsetPos, new StructureTemplate.StructureBlockInfo(info.pos(), newState, info.nbt()));
 	}
@@ -55,7 +56,7 @@ class FullFleshDoorMovingInteraction extends SimpleBlockMovingInteraction {
 		else return;
 
 		StructureTemplate.StructureBlockInfo info = contraption.getBlocks().get(otherPos);
-		if (!info.state().is(state.getBlock())) return;
+		if (info == null || !info.state().is(state.getBlock())) return;
 		if (info.state().getValue(FullFleshDoorBlock.ORIENTATION) != orientation || info.state().getValue(FullFleshDoorBlock.HINGE) == hinge) return;
 
 		if (doorBlock.isOpen(info.state()) != open) { //only updated connected door if its open state mismatches the targetState
