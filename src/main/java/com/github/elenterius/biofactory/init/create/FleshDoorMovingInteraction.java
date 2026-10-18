@@ -20,7 +20,7 @@ class FleshDoorMovingInteraction extends SimpleBlockMovingInteraction {
 
 		BlockPos otherPos = blockState.getValue(FleshDoorBlock.HALF) == DoubleBlockHalf.LOWER ? pos.above() : pos.below();
 		StructureTemplate.StructureBlockInfo info = contraption.getBlocks().get(otherPos);
-		if (info.state().hasProperty(FleshDoorBlock.OPEN)) {
+		if (info != null && info.state().hasProperty(FleshDoorBlock.OPEN)) {
 			BlockState newState = info.state().cycle(FleshDoorBlock.OPEN);
 			setContraptionBlockData(contraption.entity, otherPos, new StructureTemplate.StructureBlockInfo(info.pos(), newState, info.nbt()));
 		}
