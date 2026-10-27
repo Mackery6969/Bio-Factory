@@ -44,8 +44,8 @@ public class DataGenHandler {
 		generator.addProvider(includeServer, new ModLootTableProvider(packOutput, lookupProvider));
 
 		//models & block states
-		generator.addProvider(includeServer, new ModBlockStateProvider(packOutput, existingFileHelper));
-		generator.addProvider(includeServer, new ModItemModelProvider(packOutput, existingFileHelper));
+		generator.addProvider(includeClient, new ModBlockStateProvider(packOutput, existingFileHelper));
+		generator.addProvider(includeClient, new ModItemModelProvider(packOutput, existingFileHelper));
 
 		//translations
 		LanguageProvider enLanguage = new ModLanguageProvider(packOutput);
@@ -53,7 +53,7 @@ public class DataGenHandler {
 		//advancements
 //		generator.addProvider(includeServer, new ModAdvancementProvider(packOutput, lookupProvider, existingFileHelper, enLanguage));
 
-		generator.addProvider(includeServer, enLanguage);
+		generator.addProvider(includeClient, enLanguage);
 	}
 
 }
